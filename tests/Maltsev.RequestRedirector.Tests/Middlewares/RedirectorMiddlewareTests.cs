@@ -16,7 +16,7 @@ public class RedirectorMiddlewareTests
     {
         // setup
         var requestRedirector = _httpClientRedirector
-            .When(HttpMethod.Post, $"https://redirector:5001/{model.RequestUrl}")
+            .When(HttpMethod.Post, $"https://redirector:5001/*")
             .WithHeaders(model.RequestHeaders)
             .WithContent(model.RequestContentBody)
             .Respond(
@@ -30,13 +30,16 @@ public class RedirectorMiddlewareTests
 
         // act
         var response = await host.SendRequestAsync(
-            requestMessage: new HttpRequestMessage(HttpMethod.Post, $"/api/redirector/{model.RequestUrl}"),
+            requestMessage: new HttpRequestMessage(HttpMethod.Post, $"/api/redirector/{model.RequestUrl}")
+            {
+                Content = new StringContent(model.RequestContentBody)
+            },
             headers: model.RequestHeaders
         );
 
         // assert
         response.Should().Be200Ok();
-        response.Content.Headers.ContentType.Should().Be("application/json");
+        response.Content.Headers.ContentType!.MediaType.Should().Be("application/json");
 
         foreach (var header in model.ResponseHeaders)
         {
