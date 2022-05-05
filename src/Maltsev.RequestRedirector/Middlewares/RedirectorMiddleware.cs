@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Maltsev.RequestRedirector.Extensions;
+using Microsoft.AspNetCore.Http;
 
 namespace Maltsev.RequestRedirector.Middlewares;
 
@@ -11,8 +12,10 @@ public class RedirectorMiddleware
         this._httpClient = httpClient;
     }
 
-    public Task InvokeAsync(HttpContext httpContext)
+    public async Task InvokeAsync(HttpContext httpContext, IHttpClientFactory httpClientFactory)
     {
-        return Task.CompletedTask;
+        var request = httpContext.GetRequestMessage();
+        var response = await httpClientFactory.CreateClient(_httpClient).SendAsync(request);
+        await httpContext.WriteResponseAsync(response);
     }
 }
