@@ -8,7 +8,8 @@ internal static class HttpExtensions
 {
     internal static HttpRequestMessage GetRequestMessage(this HttpContext httpContext)
     {
-        var requestMessage = new HttpRequestMessage(HttpMethod.Get, httpContext.Request.Path)
+        var method = new HttpMethod(httpContext.Request.Method);
+        var requestMessage = new HttpRequestMessage(method, httpContext.Request.Path)
         {
             Content = new StreamContent(httpContext.Request.Body)
         };
@@ -16,7 +17,6 @@ internal static class HttpExtensions
         requestMessage.Content!.Headers.ContentType = GetMediaTypeHeaderValue(httpContext.Request.ContentType);
         requestMessage.Content!.Headers.ContentLength = httpContext.Request.ContentLength;
 
-        requestMessage.SetMethod(httpContext.Request.Method);
         requestMessage.SetHeaders(httpContext.Request.Headers);
         return requestMessage;
 
@@ -32,12 +32,6 @@ internal static class HttpExtensions
 
         var content = await response.Content.ReadAsStringAsync();
         await httpContext.Response.WriteAsync(content);
-    }
-
-    private static HttpRequestMessage SetMethod(this HttpRequestMessage requestMessage, string method)
-    {
-        requestMessage.Method = new HttpMethod(method);
-        return requestMessage;
     }
 
     private static HttpRequestMessage SetHeaders(this HttpRequestMessage requestMessage, IHeaderDictionary headerDictionary)
