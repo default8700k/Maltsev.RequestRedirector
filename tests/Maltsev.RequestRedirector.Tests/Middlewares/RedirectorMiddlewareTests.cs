@@ -1,4 +1,5 @@
-﻿using AutoFixture.Xunit2;
+﻿using AutoFixture;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using RichardSzalay.MockHttp;
 using System.Net;
@@ -13,42 +14,30 @@ public class RedirectorMiddlewareTests
 
     [Theory]
     [AutoData]
-    public async Task RequestOnRedirector_ShouldBeRedirected(RequestModel model)
+    public async Task RequestOnRedirector_ShouldBeRedirected(string url, HttpMethod method, string responseContent)
     {
         // setup
         var requestRedirector = _httpClientRedirector
-            .When(HttpMethod.Post, $"https://redirector:5001/*")
-            .WithHeaders(model.RequestHeaders)
-            .WithContent(model.RequestContentBody)
+            .When(method, $"https://redirector:5001/{url}")
             .Respond(
                 statusCode: HttpStatusCode.Found, // 302
-                headers: model.ResponseHeaders,
                 mediaType: "text/example",
-                content: model.ResponseContentBody
+                content: responseContent
             );
 
         using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
 
         // act
         var response = await host.SendRequestAsync(
-            requestMessage: new HttpRequestMessage(HttpMethod.Post, $"/api/redirector/{model.RequestUrl}")
-            {
-                Content = new StringContent(model.RequestContentBody, Encoding.UTF8, "application/json")
-            },
-            headers: model.RequestHeaders
+            requestMessage: new HttpRequestMessage(method, $"/api/redirector/{url}")
         );
 
         // assert
         response.Should().Be302Found();
         response.Content.Headers.ContentType!.MediaType.Should().Be("text/example");
 
-        foreach (var header in model.ResponseHeaders)
-        {
-            response.Should().HaveHeader(header.Key).And.BeValues(new[] { header.Value });
-        }
-
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Be(model.ResponseContentBody);
+        content.Should().Be(responseContent);
 
         _httpClientRedirector.GetMatchCount(requestRedirector).Should().Be(1);
         _httpClientRedirector.VerifyNoOutstandingExpectation();
@@ -56,7 +45,77 @@ public class RedirectorMiddlewareTests
 
     [Theory]
     [AutoData]
-    public async Task RequestOnOther_ShouldNotBeRedirected(HttpMethod method, string url)
+    public async Task RequestOnRedirector_WithHeaders_ShouldBeCorrect(string url, HttpMethod method, Generator<KeyValuePair<string, string>> headers)
+    {
+        // setup
+        var requestHeaders = headers.Take(3).ToList();
+        var responseHeaders = headers.Take(3).ToList();
+
+        var requestRedirector = _httpClientRedirector
+            .When(method, $"https://redirector:5001/{url}")
+            .WithHeaders(requestHeaders)
+            .Respond(
+                statusCode: HttpStatusCode.Found, // 302
+                headers: responseHeaders,
+                mediaType: "text/example",
+                content: ""
+            );
+
+        using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
+
+        // act
+        var response = await host.SendRequestAsync(
+            requestMessage: new HttpRequestMessage(method, $"/api/redirector/{url}"),
+            headers: requestHeaders
+        );
+
+        // assert
+        response.Should().Be302Found();
+
+        response.Headers.Should().HaveSameCount(responseHeaders);
+        foreach (var header in responseHeaders)
+        {
+            response.Should().HaveHeader(header.Key).And.BeValues(new[] { header.Value });
+        }
+
+        _httpClientRedirector.GetMatchCount(requestRedirector).Should().Be(1);
+        _httpClientRedirector.VerifyNoOutstandingExpectation();
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task RequestOnRedirector_WithRequestContent_ShouldBeCorrect(string url, HttpMethod method, string requestContent)
+    {
+        // setup
+        var requestRedirector = _httpClientRedirector
+            .When(method, $"https://redirector:5001/{url}")
+            .WithContent(requestContent)
+            .Respond(
+                statusCode: HttpStatusCode.Found, // 302
+                mediaType: "text/example",
+                content: ""
+            );
+
+        using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
+
+        // act
+        var response = await host.SendRequestAsync(
+            requestMessage: new HttpRequestMessage(method, $"/api/redirector/{url}")
+            {
+                Content = new StringContent(requestContent, Encoding.UTF8, "text/plain")
+            }
+        );
+
+        // assert
+        response.Should().Be302Found();
+
+        _httpClientRedirector.GetMatchCount(requestRedirector).Should().Be(1);
+        _httpClientRedirector.VerifyNoOutstandingExpectation();
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task RequestOnOther_ShouldNotBeRedirected(string url, HttpMethod method)
     {
         // setup
         var requestRedirector = _httpClientRedirector
@@ -69,8 +128,7 @@ public class RedirectorMiddlewareTests
 
         // act
         var response = await host.SendRequestAsync(
-            requestMessage: new HttpRequestMessage(method, $"/api/{url}"),
-            headers: Enumerable.Empty<KeyValuePair<string, string>>()
+            requestMessage: new HttpRequestMessage(method, $"/api/{url}")
         );
 
         // assert

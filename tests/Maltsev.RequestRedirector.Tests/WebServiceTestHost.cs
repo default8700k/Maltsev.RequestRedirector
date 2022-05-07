@@ -14,7 +14,7 @@ public class WebServiceTestHost : IDisposable
 
     public WebServiceTestHost(MockHttpMessageHandler redirectorHandler)
     {
-        this._host = new HostBuilder()
+        _host = new HostBuilder()
             .ConfigureWebHostDefaults(builder => builder
                 .UseTestServer()
                 .ConfigureTestServices(services =>
@@ -43,6 +43,9 @@ public class WebServiceTestHost : IDisposable
         await _host.StartAsync();
         return this;
     }
+
+    public Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage requestMessage) =>
+        _host.GetTestClient().SendAsync(requestMessage);
 
     public async Task<HttpResponseMessage> SendRequestAsync(HttpRequestMessage requestMessage, IEnumerable<KeyValuePair<string, string>> headers)
     {
