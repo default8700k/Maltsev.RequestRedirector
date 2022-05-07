@@ -2,6 +2,7 @@
 using FluentAssertions;
 using RichardSzalay.MockHttp;
 using System.Net;
+using System.Text;
 using Xunit;
 
 namespace Maltsev.RequestRedirector.Tests.Middlewares;
@@ -12,7 +13,7 @@ public class RedirectorMiddlewareTests
 
     [Theory]
     [AutoData]
-    public async Task RequestOnRedirector_ShouldBeRedirected(RequestModel model)
+    public async Task RequestOnRedirector_ShouldBeCorrect(RequestModel model)
     {
         // setup
         var requestRedirector = _httpClientRedirector
@@ -22,7 +23,7 @@ public class RedirectorMiddlewareTests
             .Respond(
                 statusCode: HttpStatusCode.OK,
                 headers: model.ResponseHeaders,
-                mediaType: "application/json",
+                mediaType: "text/html",
                 content: "abc"
             );
 
@@ -32,14 +33,14 @@ public class RedirectorMiddlewareTests
         var response = await host.SendRequestAsync(
             requestMessage: new HttpRequestMessage(HttpMethod.Post, $"/api/redirector/{model.RequestUrl}")
             {
-                Content = new StringContent(model.RequestContentBody)
+                Content = new StringContent(model.RequestContentBody, Encoding.UTF8, "application/json")
             },
             headers: model.RequestHeaders
         );
 
         // assert
         response.Should().Be200Ok();
-        response.Content.Headers.ContentType!.MediaType.Should().Be("application/json");
+        response.Content.Headers.ContentType!.MediaType.Should().Be("text/html");
 
         foreach (var header in model.ResponseHeaders)
         {
