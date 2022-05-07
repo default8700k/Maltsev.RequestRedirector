@@ -13,14 +13,17 @@ internal static class HttpExtensions
             Content = new StreamContent(httpContext.Request.Body)
         };
 
+        requestMessage.Content!.Headers.ContentType = MediaTypeHeaderValue.Parse(httpContext.Request.ContentType);
+        requestMessage.Content!.Headers.ContentLength = httpContext.Request.ContentLength;
+
         requestMessage.SetMethod(httpContext.Request.Method);
-        requestMessage.Headers.SetHeaders(httpContext.Request.Headers);
+        requestMessage.SetHeaders(httpContext.Request.Headers);
         return requestMessage;
     }
 
     internal static async Task WriteResponseAsync(this HttpContext httpContext, HttpResponseMessage response)
     {
-        httpContext.Response.Headers.SetHeaders(response.Headers);
+        httpContext.Response.SetHeaders(response.Headers);
         httpContext.Response.SetContentType(response.Content.Headers.ContentType);
         httpContext.Response.SetStatusCode(response.StatusCode);
 
@@ -34,26 +37,29 @@ internal static class HttpExtensions
         return requestMessage;
     }
 
-    private static HttpRequestHeaders SetHeaders(this HttpRequestHeaders requestHeaders, IHeaderDictionary headerDictionary)
+    private static HttpRequestMessage SetHeaders(this HttpRequestMessage requestMessage, IHeaderDictionary headerDictionary)
     {
+        headerDictionary.RemoveIfKeyExists("Content-Type");
+        headerDictionary.RemoveIfKeyExists("Content-Length");
+
         foreach (var header in headerDictionary)
         {
             var values = header.Value.ToArray();
-            requestHeaders.Add(header.Key, values);
+            requestMessage.Headers.Add(header.Key, values);
         }
 
-        return requestHeaders;
+        return requestMessage;
     }
 
-    private static IHeaderDictionary SetHeaders(this IHeaderDictionary headerDictionary, HttpResponseHeaders responseHeaders)
+    private static HttpResponse SetHeaders(this HttpResponse response, HttpResponseHeaders responseHeaders)
     {
         foreach (var responseHeader in responseHeaders)
         {
             var values = responseHeader.Value.ToArray();
-            headerDictionary.Add(responseHeader.Key, values);
+            response.Headers.Add(responseHeader.Key, values);
         }
 
-        return headerDictionary;
+        return response;
     }
 
     private static HttpResponse SetContentType(this HttpResponse response, MediaTypeHeaderValue? mediaType)
@@ -70,5 +76,15 @@ internal static class HttpExtensions
     {
         response.StatusCode = (int)statusCode;
         return response;
+    }
+
+    private static IHeaderDictionary RemoveIfKeyExists(this IHeaderDictionary headerDictionary, string key)
+    {
+        if (headerDictionary.ContainsKey(key))
+        {
+            headerDictionary.Remove(key);
+        }
+
+        return headerDictionary;
     }
 }
