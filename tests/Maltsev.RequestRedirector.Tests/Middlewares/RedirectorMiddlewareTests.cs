@@ -21,10 +21,10 @@ public class RedirectorMiddlewareTests
             .WithHeaders(model.RequestHeaders)
             .WithContent(model.RequestContentBody)
             .Respond(
-                statusCode: HttpStatusCode.Accepted,
+                statusCode: HttpStatusCode.Found, // 302
                 headers: model.ResponseHeaders,
-                mediaType: "text/html",
-                content: "abc"
+                mediaType: "text/example",
+                content: model.ResponseContentBody
             );
 
         using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
@@ -39,8 +39,8 @@ public class RedirectorMiddlewareTests
         );
 
         // assert
-        response.Should().Be202Accepted();
-        response.Content.Headers.ContentType!.MediaType.Should().Be("text/html");
+        response.Should().Be302Found();
+        response.Content.Headers.ContentType!.MediaType.Should().Be("text/example");
 
         foreach (var header in model.ResponseHeaders)
         {
@@ -48,7 +48,7 @@ public class RedirectorMiddlewareTests
         }
 
         var content = await response.Content.ReadAsStringAsync();
-        content.Should().Be("abc");
+        content.Should().Be(model.ResponseContentBody);
 
         _httpClientRedirector.GetMatchCount(requestRedirector).Should().Be(1);
         _httpClientRedirector.VerifyNoOutstandingExpectation();
@@ -62,9 +62,7 @@ public class RedirectorMiddlewareTests
         var requestRedirector = _httpClientRedirector
             .When("https://redirector:5001/*")
             .Respond(
-                statusCode: HttpStatusCode.Accepted,
-                mediaType: "text/html",
-                content: "abc"
+                statusCode: HttpStatusCode.BadGateway // 502
             );
 
         using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
