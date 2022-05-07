@@ -8,17 +8,20 @@ internal static class HttpExtensions
 {
     internal static HttpRequestMessage GetRequestMessage(this HttpContext httpContext)
     {
-        var requestMessage = new HttpRequestMessage
+        var requestMessage = new HttpRequestMessage(HttpMethod.Get, httpContext.Request.Path)
         {
             Content = new StreamContent(httpContext.Request.Body)
         };
 
-        requestMessage.Content!.Headers.ContentType = MediaTypeHeaderValue.Parse(httpContext.Request.ContentType);
+        requestMessage.Content!.Headers.ContentType = GetMediaTypeHeaderValue(httpContext.Request.ContentType);
         requestMessage.Content!.Headers.ContentLength = httpContext.Request.ContentLength;
 
         requestMessage.SetMethod(httpContext.Request.Method);
         requestMessage.SetHeaders(httpContext.Request.Headers);
         return requestMessage;
+
+        static MediaTypeHeaderValue? GetMediaTypeHeaderValue(string contentType) =>
+            string.IsNullOrWhiteSpace(contentType) ? null : MediaTypeHeaderValue.Parse(contentType);
     }
 
     internal static async Task WriteResponseAsync(this HttpContext httpContext, HttpResponseMessage response)
