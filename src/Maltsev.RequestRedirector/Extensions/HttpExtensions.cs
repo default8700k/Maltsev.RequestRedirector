@@ -7,14 +7,15 @@ namespace Maltsev.RequestRedirector.Extensions;
 
 internal static class HttpExtensions
 {
-    internal static HttpRequestMessage GetRequestMessage(this HttpContext httpContext)
+    internal static async Task<HttpRequestMessage> GetRequestMessageAsync(this HttpContext httpContext)
     {
         var method = new HttpMethod(httpContext.Request.Method);
+        var content = await httpContext.Request.Body.ReadToStringAsync();
 
         var requestUri = QueryHelpers.AddQueryString(httpContext.Request.Path, httpContext.Request.Query);
         var requestMessage = new HttpRequestMessage(method, requestUri)
         {
-            Content = new StreamContent(httpContext.Request.Body)
+            Content = new StringContent(content)
         };
 
         requestMessage.Content!.Headers.ContentType = GetMediaTypeHeaderValue(httpContext.Request.ContentType);
@@ -35,6 +36,12 @@ internal static class HttpExtensions
 
         var content = await response.Content.ReadAsStringAsync();
         await httpContext.Response.WriteAsync(content);
+    }
+
+    private static Task<string> ReadToStringAsync(this Stream stream)
+    {
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEndAsync();
     }
 
     private static HttpRequestMessage SetHeaders(this HttpRequestMessage requestMessage, IHeaderDictionary headerDictionary)
