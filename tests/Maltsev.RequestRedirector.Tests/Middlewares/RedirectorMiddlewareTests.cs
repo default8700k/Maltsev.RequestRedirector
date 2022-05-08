@@ -89,16 +89,12 @@ public class RedirectorMiddlewareTests
     public async Task RequestOnRedirector_WithQueryParameters_ShouldBeCorrect(string url, HttpMethod method, IEnumerable<KeyValuePair<string, StringValues>> parameters)
     {
         // setup
-        var queryParameters = QueryHelpers.AddQueryString("", parameters).Remove(0, 1);
+        var queryParameters = QueryHelpers.AddQueryString("", parameters).Remove(0, 1); // and removes '?' first char
 
         var requestRedirector = _httpClientRedirector
             .When(method, $"https://redirector:5001/{url}")
             .WithQueryString(queryParameters)
-            .Respond(
-                statusCode: HttpStatusCode.Found, // 302
-                mediaType: "text/example",
-                content: ""
-            );
+            .Respond(HttpStatusCode.Found); // 302
 
         using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
 
@@ -122,11 +118,7 @@ public class RedirectorMiddlewareTests
         var requestRedirector = _httpClientRedirector
             .When(method, $"https://redirector:5001/{url}")
             .WithContent(requestContent)
-            .Respond(
-                statusCode: HttpStatusCode.Found, // 302
-                mediaType: "text/example",
-                content: ""
-            );
+            .Respond(HttpStatusCode.Found); // 302
 
         using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
 
@@ -152,9 +144,7 @@ public class RedirectorMiddlewareTests
         // setup
         var requestRedirector = _httpClientRedirector
             .When("https://redirector:5001/*")
-            .Respond(
-                statusCode: HttpStatusCode.BadGateway // 502
-            );
+            .Respond(HttpStatusCode.BadGateway); // 502
 
         using var host = await new WebServiceTestHost(_httpClientRedirector).StartAsync();
 
