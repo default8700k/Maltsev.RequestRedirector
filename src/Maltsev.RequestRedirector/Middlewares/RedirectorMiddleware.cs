@@ -14,7 +14,7 @@ public class RedirectorMiddleware
 
     public async Task InvokeAsync(HttpContext httpContext, IHttpClientFactory httpClientFactory)
     {
-        var request = await httpContext.GetRequestMessageAsync();
+        var request = httpContext.GetRequestMessage();
         var response = await httpClientFactory.CreateClient(_httpClient).SendAsync(request);
         await httpContext.WriteResponseAsync(response);
     }
