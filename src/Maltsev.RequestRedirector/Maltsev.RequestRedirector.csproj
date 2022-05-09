@@ -8,10 +8,15 @@
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
         <Version>1.0.0</Version>
+
+        <Description>Simple middleware for redirect requests.</Description>
+        <RepositoryUrl>https://github.com/default8700k/Maltsev.RequestRedirector</RepositoryUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>Middleware, HttpClient, Request, Redirect</PackageTags>
+        <Authors>default8700k</Authors>
     </PropertyGroup>
 
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
-
 </Project>
