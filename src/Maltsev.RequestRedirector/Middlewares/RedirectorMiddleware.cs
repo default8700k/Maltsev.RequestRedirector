@@ -9,7 +9,7 @@ public class RedirectorMiddleware
 
     public RedirectorMiddleware(RequestDelegate next, string httpClient)
     {
-        this._httpClient = httpClient;
+        _httpClient = httpClient;
     }
 
     public async Task InvokeAsync(HttpContext httpContext, IHttpClientFactory httpClientFactory)
