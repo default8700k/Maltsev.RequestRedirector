@@ -28,14 +28,13 @@ internal static class HttpExtensions
             string.IsNullOrWhiteSpace(contentType) ? null : MediaTypeHeaderValue.Parse(contentType);
     }
 
-    internal static async Task WriteResponseAsync(this HttpContext httpContext, HttpResponseMessage response)
+    internal static HttpResponse Preparation(this HttpResponse instance, HttpResponseMessage response)
     {
-        httpContext.Response.SetHeaders(response.Headers);
-        httpContext.Response.SetContentType(response.Content.Headers.ContentType);
-        httpContext.Response.SetStatusCode(response.StatusCode);
+        instance.SetHeaders(response.Headers);
+        instance.SetContentType(response.Content.Headers.ContentType);
+        instance.SetStatusCode(response.StatusCode);
 
-        var content = await response.Content.ReadAsStringAsync();
-        await httpContext.Response.WriteAsync(content);
+        return instance;
     }
 
     private static Task<string> ReadToStringAsync(this Stream stream)
@@ -44,26 +43,28 @@ internal static class HttpExtensions
         return reader.ReadToEndAsync();
     }
 
-    private static HttpRequestMessage SetHeaders(this HttpRequestMessage requestMessage, IHeaderDictionary headerDictionary)
+    private static HttpRequestMessage SetHeaders(this HttpRequestMessage request, IHeaderDictionary headers)
     {
-        headerDictionary.RemoveIfKeyExists("Content-Type");
-        headerDictionary.RemoveIfKeyExists("Content-Length");
+        headers.RemoveIfKeyExists("Content-Type");
+        headers.RemoveIfKeyExists("Content-Length");
 
-        foreach (var header in headerDictionary)
+        foreach (var header in headers)
         {
-            var values = header.Value.ToArray();
-            requestMessage.Headers.Add(header.Key, values);
+            var values = header.Value as IEnumerable<string>;
+            request.Headers.Add(header.Key, values);
         }
 
-        return requestMessage;
+        return request;
     }
 
-    private static HttpResponse SetHeaders(this HttpResponse response, HttpResponseHeaders responseHeaders)
+    private static HttpResponse SetHeaders(this HttpResponse response, HttpResponseHeaders headers)
     {
-        foreach (var responseHeader in responseHeaders)
+        headers.RemoveIfKeyExists("Transfer-Encoding");
+
+        foreach (var header in headers)
         {
-            var values = responseHeader.Value.ToArray();
-            response.Headers.Add(responseHeader.Key, values);
+            var values = header.Value.ToArray();
+            response.Headers.Add(header.Key, values);
         }
 
         return response;
@@ -85,13 +86,23 @@ internal static class HttpExtensions
         return response;
     }
 
-    private static IHeaderDictionary RemoveIfKeyExists(this IHeaderDictionary headerDictionary, string key)
+    private static IHeaderDictionary RemoveIfKeyExists(this IHeaderDictionary headers, string key)
     {
-        if (headerDictionary.ContainsKey(key))
+        if (headers.ContainsKey(key))
         {
-            headerDictionary.Remove(key);
+            headers.Remove(key);
         }
 
-        return headerDictionary;
+        return headers;
+    }
+
+    private static HttpResponseHeaders RemoveIfKeyExists(this HttpResponseHeaders headers, string key)
+    {
+        if (headers.Contains(key))
+        {
+            headers.Remove(key);
+        }
+
+        return headers;
     }
 }
