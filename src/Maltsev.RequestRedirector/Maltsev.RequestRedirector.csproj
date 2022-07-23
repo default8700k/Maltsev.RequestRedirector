@@ -15,6 +15,7 @@
         <PackageTags>Middleware, HttpClient, Request, Redirect</PackageTags>
         <Description>Simple middleware for redirect requests.</Description>
         <RepositoryUrl>https://github.com/default8700k/Maltsev.RequestRedirector</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
         <Copyright>(C) Maltsev Victor, 2022</Copyright>
         <Authors>default8700k</Authors>
     </PropertyGroup>
