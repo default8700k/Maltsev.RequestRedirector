@@ -33,7 +33,7 @@ public class RedirectorMiddlewareTests : IDisposable
         )
         .RespondWith(
             Response.Create()
-                .WithStatusCode(HttpStatusCode.Found)
+                .WithStatusCode(HttpStatusCode.Found) // 302
                 .WithHeader("Content-Type", "text/example")
                 .WithBody(responseContent)
         );
@@ -71,7 +71,7 @@ public class RedirectorMiddlewareTests : IDisposable
         )
         .RespondWith(
             Response.Create()
-                .WithStatusCode(HttpStatusCode.Found)
+                .WithStatusCode(HttpStatusCode.Found) // 302
                 .WithHeader(responseHeaders[0].Key, responseHeaders[0].Value)
                 .WithHeader(responseHeaders[1].Key, responseHeaders[1].Value)
                 .WithHeader(responseHeaders[2].Key, responseHeaders[2].Value)
@@ -111,7 +111,7 @@ public class RedirectorMiddlewareTests : IDisposable
         )
         .RespondWith(
             Response.Create()
-                .WithStatusCode(HttpStatusCode.Found)
+                .WithStatusCode(HttpStatusCode.Found) // 302
         );
 
         using var host = await new WebServiceTestHost().StartAsync();
@@ -138,7 +138,7 @@ public class RedirectorMiddlewareTests : IDisposable
         )
         .RespondWith(
             Response.Create()
-                .WithStatusCode(HttpStatusCode.Found)
+                .WithStatusCode(HttpStatusCode.Found) // 302
         );
 
         using var host = await new WebServiceTestHost().StartAsync();
@@ -165,7 +165,7 @@ public class RedirectorMiddlewareTests : IDisposable
         )
         .RespondWith(
             Response.Create()
-                .WithStatusCode(HttpStatusCode.Found)
+                .WithStatusCode(HttpStatusCode.Found) // 302
         );
 
         using var host = await new WebServiceTestHost().StartAsync();
