@@ -5,14 +5,17 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
-        <AssemblyVersion>1.0.1.1</AssemblyVersion>
-        <FileVersion>1.0.1.1</FileVersion>
-        <Version>1.0.1</Version>
+        <AssemblyVersion>1.0.2.2</AssemblyVersion>
+        <FileVersion>1.0.2.2</FileVersion>
+        <Version>1.0.2</Version>
 
-        <Description>Simple middleware for redirect requests.</Description>
-        <RepositoryUrl>https://github.com/default8700k/Maltsev.RequestRedirector</RepositoryUrl>
+        <PackageId>Maltsev.RequestRedirector</PackageId>
+        <PackageProjectUrl>https://github.com/default8700k/Maltsev.RequestRedirector</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>Middleware, HttpClient, Request, Redirect</PackageTags>
+        <Description>Simple middleware for redirect requests.</Description>
+        <RepositoryUrl>https://github.com/default8700k/Maltsev.RequestRedirector</RepositoryUrl>
+        <Copyright>(C) Maltsev Victor, 2022</Copyright>
         <Authors>default8700k</Authors>
     </PropertyGroup>
 
