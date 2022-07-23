@@ -37,10 +37,10 @@ internal static class HttpExtensions
         return instance;
     }
 
-    private static Task<string> ReadToStringAsync(this Stream stream)
+    private static async Task<string> ReadToStringAsync(this Stream stream)
     {
         using var reader = new StreamReader(stream);
-        return reader.ReadToEndAsync();
+        return await reader.ReadToEndAsync();
     }
 
     private static HttpRequestMessage SetHeaders(this HttpRequestMessage request, IHeaderDictionary headers)
